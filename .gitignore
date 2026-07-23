@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+route_tracker.db
+.DS_Store
+.env

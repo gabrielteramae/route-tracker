@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Route Tracker</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>Route Tracker</h1>
+      <p class="subtitle">Clique no mapa para marcar pontos da rota.</p>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">Distância</span>
+          <span class="stat-value" id="stat-distance">0.000 km</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Pontos</span>
+          <span class="stat-value" id="stat-points">0</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <input type="text" id="route-name" placeholder="Nome da rota" />
+        <button id="btn-save" disabled>Salvar rota</button>
+        <button id="btn-clear" class="secondary">Limpar</button>
+      </div>
+
+      <hr />
+
+      <h2>Rotas salvas</h2>
+      <ul id="route-list" class="route-list"></ul>
+    </aside>
+
+    <main id="map"></main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/script.js"></script>
+</body>
+</html>
