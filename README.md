@@ -4,7 +4,7 @@
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat&logo=sqlite&logoColor=white)
 ![Leaflet](https://img.shields.io/badge/Leaflet.js-199900?style=flat&logo=leaflet&logoColor=white)
 
-Aplicação Full-Stack para registrar rotas GPS num mapa interativo e calcular a distância percorrida - Um estudo sobre mapas, geolocalização e rotas
+Aplicação Full-Stack para registrar rotas GPS num mapa interativo e calcular a distância percorrida - Um estudo sobre mapas, geolocalização e rotas.
 
 ## Sobre
 
