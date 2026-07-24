@@ -13,6 +13,7 @@ class Route(Base):
     name = Column(String, nullable=False)
     distance_km = Column(Float, nullable=False, default=0.0)
     duration_seconds = Column(Integer, nullable=True)
+    transport_mode = Column(String, nullable=False, default="walking")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     points = relationship(
