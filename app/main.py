@@ -25,12 +25,13 @@ STATIC_DIR = BASE_DIR / "static"
 def create_route(route_in: schemas.RouteCreate, db: Session = Depends(get_db)):
     coords = [(p.latitude, p.longitude) for p in route_in.points]
     distance_km = geo.total_route_distance_km(coords)
-    duration = geo.route_duration_seconds([p.recorded_at for p in route_in.points])
+    duration = geo.estimate_duration_seconds(distance_km, route_in.transport_mode)
 
     route = models.Route(
         name=route_in.name,
         distance_km=distance_km,
         duration_seconds=duration,
+        transport_mode=route_in.transport_mode,
     )
     db.add(route)
     db.flush()  # garante route.id antes de criar os pontos
@@ -60,6 +61,7 @@ def list_routes(db: Session = Depends(get_db)):
             name=r.name,
             distance_km=r.distance_km,
             duration_seconds=r.duration_seconds,
+            transport_mode=r.transport_mode,
             created_at=r.created_at,
             point_count=len(r.points),
         )
