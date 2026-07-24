@@ -1,31 +1,58 @@
-// ---- Estado ----
 let currentPoints = []; // [{lat, lng}]
 let markers = [];
 let currentLine = null;
 let savedRouteLine = null;
 
-// ---- Mapa ----
-const map = L.map("map").setView([-23.5505, -46.6333], 13); // São Paulo como centro inicial
-
+const map = L.map("map").setView([-23.5505, -46.6333], 13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
   maxZoom: 19,
 }).addTo(map);
 
 map.on("click", (e) => {
-  if (savedRouteLine) return; // não adiciona ponto se estiver visualizando rota salva
+  if (savedRouteLine) return;
   addPoint(e.latlng.lat, e.latlng.lng);
 });
 
-// ---- Elementos ----
 const statDistance = document.getElementById("stat-distance");
+const statTime = document.getElementById("stat-time");
 const statPoints = document.getElementById("stat-points");
 const routeNameInput = document.getElementById("route-name");
+const transportModeSelect = document.getElementById("transport-mode");
 const btnSave = document.getElementById("btn-save");
 const btnClear = document.getElementById("btn-clear");
 const routeListEl = document.getElementById("route-list");
 
-// ---- Haversine (client-side, pra feedback em tempo real) ----
+const TRANSPORT_SPEEDS_KMH = {
+  walking: 5.0,
+  running: 10.0,
+  cycling: 16.0,
+  driving: 30.0,
+};
+
+const TRANSPORT_LABELS = {
+  walking: "🚶 Caminhada",
+  running: "🏃 Corrida",
+  cycling: "🚴 Bicicleta",
+  driving: "🚗 Carro",
+};
+
+function formatDuration(seconds) {
+  if (!seconds || seconds <= 0) return "—";
+  if (seconds < 60) return `${seconds} seg`;
+  const totalMinutes = Math.round(seconds / 60);
+  if (totalMinutes < 60) return `${totalMinutes} min`;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return minutes > 0 ? `${hours}h ${minutes}min` : `${hours}h`;
+}
+
+function estimateDurationSeconds(distanceKm, mode) {
+  const speed = TRANSPORT_SPEEDS_KMH[mode] || TRANSPORT_SPEEDS_KMH.walking;
+  if (speed <= 0 || distanceKm <= 0) return 0;
+  return Math.round((distanceKm / speed) * 3600);
+}
+
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const toRad = (deg) => (deg * Math.PI) / 180;
@@ -50,7 +77,6 @@ function totalDistance(points) {
   return total;
 }
 
-// ---- Adicionar ponto ----
 function addPoint(lat, lng) {
   currentPoints.push({ lat, lng, recorded_at: new Date().toISOString() });
 
@@ -78,12 +104,17 @@ function redrawLine() {
 
 function updateStats() {
   const dist = totalDistance(currentPoints);
+  const mode = transportModeSelect.value;
+  const duration = estimateDurationSeconds(dist, mode);
+
   statDistance.textContent = `${dist.toFixed(3)} km`;
+  statTime.textContent = formatDuration(duration);
   statPoints.textContent = currentPoints.length;
   btnSave.disabled = currentPoints.length < 2;
 }
 
-// ---- Limpar ----
+transportModeSelect.addEventListener("change", updateStats);
+
 function clearCurrentRoute() {
   currentPoints = [];
   markers.forEach((m) => map.removeLayer(m));
@@ -100,7 +131,6 @@ function clearCurrentRoute() {
 
 btnClear.addEventListener("click", clearCurrentRoute);
 
-// ---- Salvar rota ----
 btnSave.addEventListener("click", async () => {
   const name = routeNameInput.value.trim();
   if (!name) {
@@ -111,6 +141,7 @@ btnSave.addEventListener("click", async () => {
 
   const payload = {
     name,
+    transport_mode: transportModeSelect.value,
     points: currentPoints.map((p) => ({
       latitude: p.lat,
       longitude: p.lng,
@@ -138,7 +169,6 @@ btnSave.addEventListener("click", async () => {
   }
 });
 
-// ---- Listar rotas salvas ----
 async function loadRoutes() {
   const resp = await fetch("/api/routes");
   const routes = await resp.json();
@@ -153,12 +183,11 @@ async function loadRoutes() {
   routes.forEach((r) => {
     const li = document.createElement("li");
     li.className = "route-item";
-    const duration = r.duration_seconds
-      ? `${Math.round(r.duration_seconds / 60)} min`
-      : "—";
+    const duration = formatDuration(r.duration_seconds);
+    const modeLabel = TRANSPORT_LABELS[r.transport_mode] || "";
     li.innerHTML = `
       <div class="name">${r.name}</div>
-      <div class="meta">${r.distance_km.toFixed(3)} km · ${r.point_count} pontos · ${duration}</div>
+      <div class="meta">${r.distance_km.toFixed(3)} km · ${duration} · ${modeLabel}</div>
       <button class="delete-btn" title="Excluir">✕</button>
     `;
     li.addEventListener("click", (e) => {
@@ -175,7 +204,6 @@ async function loadRoutes() {
   });
 }
 
-// ---- Visualizar rota salva no mapa ----
 async function viewRoute(id) {
   clearCurrentRoute();
   const resp = await fetch(`/api/routes/${id}`);
@@ -186,6 +214,7 @@ async function viewRoute(id) {
   map.fitBounds(savedRouteLine.getBounds(), { padding: [40, 40] });
 
   statDistance.textContent = `${route.distance_km.toFixed(3)} km`;
+  statTime.textContent = formatDuration(route.duration_seconds);
   statPoints.textContent = route.points.length;
 }
 
