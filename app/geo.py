@@ -50,6 +50,10 @@ def route_duration_seconds(timestamps: List[Optional[object]]) -> Optional[int]:
     """
     Duração da rota em segundos, baseada no primeiro e último timestamp
     informado. Retorna None se os timestamps não foram fornecidos.
+
+    Nota: só é significativo se os pontos foram registrados em tempo real
+    (ex: GPS ao vivo). Se os pontos foram marcados manualmente clicando
+    no mapa, use estimate_duration_seconds() em vez desta função.
     """
     validos = [t for t in timestamps if t is not None]
     if len(validos) < 2:
@@ -57,3 +61,28 @@ def route_duration_seconds(timestamps: List[Optional[object]]) -> Optional[int]:
 
     inicio, fim = min(validos), max(validos)
     return int((fim - inicio).total_seconds())
+
+
+# Velocidade média por modo de transporte, em km/h.
+# Valores aproximados de referência para ambiente urbano.
+TRANSPORT_SPEEDS_KMH = {
+    "walking": 5.0,
+    "running": 10.0,
+    "cycling": 16.0,
+    "driving": 30.0,
+}
+
+
+def estimate_duration_seconds(distance_km: float, transport_mode: str) -> int:
+    """
+    Estima o tempo de percurso a partir da distância total e do modo de
+    transporte, usando uma velocidade média de referência. É uma estimativa
+    (não considera trânsito, semáforos, relevo, etc.), mas dá uma noção
+    realista de tempo — diferente de medir o tempo entre cliques no mapa,
+    que não representa deslocamento real nenhum.
+    """
+    speed_kmh = TRANSPORT_SPEEDS_KMH.get(transport_mode, TRANSPORT_SPEEDS_KMH["walking"])
+    if speed_kmh <= 0 or distance_km <= 0:
+        return 0
+    hours = distance_km / speed_kmh
+    return int(round(hours * 3600))
