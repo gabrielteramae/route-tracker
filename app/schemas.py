@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
+
+TransportMode = Literal["walking", "running", "cycling", "driving"]
 
 
 class PointCreate(BaseModel):
@@ -23,6 +25,7 @@ class PointOut(BaseModel):
 
 class RouteCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
+    transport_mode: TransportMode = "walking"
     points: List[PointCreate] = Field(..., min_length=2)
 
 
@@ -31,6 +34,7 @@ class RouteSummary(BaseModel):
     name: str
     distance_km: float
     duration_seconds: Optional[int] = None
+    transport_mode: str
     created_at: datetime
     point_count: int
 
@@ -43,6 +47,7 @@ class RouteDetail(BaseModel):
     name: str
     distance_km: float
     duration_seconds: Optional[int] = None
+    transport_mode: str
     created_at: datetime
     points: List[PointOut]
 
