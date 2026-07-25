@@ -1,9 +1,10 @@
-let currentPoints = []; // [{lat, lng}]
+let currentPoints = [];
 let markers = [];
 let currentLine = null;
 let savedRouteLine = null;
 
 const map = L.map("map").setView([-23.5505, -46.6333], 13);
+
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
   maxZoom: 19,
@@ -218,6 +219,5 @@ async function viewRoute(id) {
   statPoints.textContent = route.points.length;
 }
 
-// ---- Init ----
 updateStats();
 loadRoutes();
