@@ -4,3 +4,4 @@ __pycache__/
 route_tracker.db
 .DS_Store
 .env
+\n.pytest_cache/\n
